@@ -1,0 +1,15 @@
+djangorestframework
+azure-cognitiveservices-speech
+azure-storage-blob
+pyttsx3
+azure-ai-textanalytics
+azure-cognitiveservices-vision-computervision
+azure.vision.ai
+opencv-python
+numpy
+asgiref
+Django
+psycopg2-binary
+sqlparse
+tzdata
+whitenoise
