@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static  %}
+    <link rel="stylesheet" href="{% static 'home.css' %}">
+    <title>संजय उवाच</title>
+</head>
+<body>
+    <div id='container'>
+        <div id="tit">
+            <p id='title'>
+                Team ENIGMA Presents <br>
+                <span id='main'>संजय उवाच</span> <br>
+                <sub>makeAton Hackathon</sub>
+            </p>
+            <p id='hello'>
+            Start saying "Hello"!!🎙️
+            </p>
+            <p >
+                <div id='guide'>
+                For Staters :
+                <ul>
+                    <li>What are the objects around me?</li>
+                    <li>Will this bus go to palakkad?</li>
+                    <li>Explain surroundings?</li>
+                    <li>help!! help!! help!!</li>
+                </ul>
+                </div>
+            </p>
+        </div>
+        <div id="videosection">
+        <video id="camera-feed" width=1300px autoplay playsinline></video>
+        </div>
+        <div id="ouputsection" width=200px>
+        {% comment %} <button id="capture-button">Capture Frame</button> {% endcomment %}
+        <button id="start-listening-button" >I am ready to listen!! </button>
+        <h2 id="update-me">Click the above button to speak...</h2>
+        <h4 id="output" >Output Goes here</h4>
+        <div id="funtionalities">
+
+            <input type="checkbox" id="toggle" class="checkbox" > Caustious Mode </input><br>
+            <button onclick=setText('object')>Object detection</button><br>
+            <button onclick=setText('surroundings')>Surroundings</button><br>
+            <button onclick=setText('help')> help help help</button><br>
+            <button onclick=setText('bus to ooty')>Track the bus</button><br>
+
+        </div>
+        
+        </div>
+
+    </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    {% comment %} Cautious mode {% endcomment %}
+    {% comment %} const captureButton = document.getElementById('capture-button'); {% endcomment %}
+    const videoElement = document.getElementById('camera-feed');
+    async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                
+                videoElement.srcObject = stream;
+            } catch (error) {
+                console.error('Error accessing the camera:', error);
+            }
+        }
+        {% comment %} captureButton.addEventListener('click', captureFrame); {% endcomment %}
+        function captureFrame() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+            const dataURL = canvas.toDataURL('image/jpeg');  // Convert frame to base64 data URL
+
+            // Send the captured frame to the server for uploading to Azure Blob Storage
+            uploadFrameToBlobStorage(dataURL);
+            setTimeout(function() {
+            console.log("After 1 second");
+            }, 2500);
+        }
+        
+        function uploadFrameToBlobStorage(dataURL) {
+        $.ajax({
+            url: "{% url 'uploadFrame' %}", // Replace with your server's endpoint
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ image: dataURL }),
+            success: function () {
+                console.log('Frame uploaded successfully.');
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Error uploading frame:', textStatus, errorThrown);
+            }
+        });
+    }
+
+    
+    // Call the function to start the camera when the page loads
+    window.addEventListener('DOMContentLoaded', startCamera);
+    function setText(text){
+            document.getElementById("update-me").innerHTML = text;
+            document.getElementById("start-listening-button").disabled = false;
+            document.getElementById("start-listening-button").innerHTML = "Start Listening";
+            text = text.toLowerCase();
+            if(text.includes("object")){
+                console.log("object found");
+                captureFrame();
+                getObjects();
+                
+            }
+            else if (text.includes("hello")){
+                console.log("hello found");
+                setOutput("Hello, How are you?");
+                $.ajax({
+                        url: "{% url 'speak' %}",  // Replace with your URL pattern name
+                        type: "GET",
+                        data : {
+                            'text': "Hello this is sanjaya, I am here to support and make you day."
+                        },
+                        dataType: "json",
+                        success: function (data) {
+                            console.log('Success:');
+                        },
+                        error: function (error) {
+                            console.error('Error:', error);
+                        }
+                        
+                    });
+            }
+            else if (text.includes("danger")){
+                console.log("danger found");
+                setOutput("Danger found");
+                $.ajax({
+                        url: "{% url 'speak' %}",  // Replace with your URL pattern name
+                        type: "GET",
+                        data : {
+                            'text': "Danger found"
+                        },
+                        dataType: "json",
+                        success: function (data) {
+                            console.log('Success:');
+                        },
+                        error: function (error) {
+                            console.error('Error:', error);
+                        }
+                        
+                    });
+            }
+            else if(text.includes("bus")){
+                captureFrame();
+                getBus(text);
+                
+            }
+            else if(text.includes("surroundings")){
+                captureFrame();
+                getSurr();
+                
+            }
+            else if(text.includes("help")){
+                console.log("help found");
+                setOutput("Help is on the way");
+                $.ajax({
+                        url: "{% url 'speak' %}",  // Replace with your URL pattern name
+                        type: "GET",
+                        data : {
+                            'text': "Help is on the way. Sent live location to near by police station and your family members."
+                        },
+                        dataType: "json",
+                        success: function (data) {
+                            console.log('Success:');
+
+                        },
+                        error: function (error) {
+                            console.error('Error:', error);
+                        }
+                        
+                    });
+                
+            }
+            else{
+                console.log("Speak again");
+                setOutput("Command not detected follow the guide.");
+            }
+            
+        }
+        function setOutput(text){
+            document.getElementById("output").innerHTML = text;
+        }
+        function getSurr(){
+            console.log("surroundings found");
+            
+            $.ajax({
+                url: "{% url 'fifs' %}",  // Replace with your URL pattern name
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    console.log('Success:', data);
+                    console.log(data.caption);
+                    // Update the text on the page with the data from the server
+                    setOutput(data.caption);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            })
+        }
+        function getObjects(text){
+            console.log(text),
+            $.ajax({
+                url: "{% url 'findObjects' %}",  // Replace with your URL pattern name
+                type: "GET",
+                dataType: "json",
+                data: {
+                    'text': text
+                },
+                success: function (data) {
+                    console.log('Success:', data);
+                    console.log(data.bus);
+                    // Update the text on the page with the data from the server
+                    setOutput(data.objects);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            })
+        }
+        
+        function getBus(text){
+            console.log(text),
+            $.ajax({
+                url: "{% url 'busroute' %}",  // Replace with your URL pattern name
+                type: "GET",
+                ddataType: "json",
+                data: {
+                    'text': text
+                },
+                success: function (data) {
+                    console.log('Success:', data);
+                    console.log(data.bus);
+                    // Update the text on the page with the data from the server
+                    setOutput(data.bus);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            })
+        }
+
+        $(document).ready(function () {
+            $('#start-listening-button').click(function () {
+                console.log("Listening...");
+                document.getElementById("start-listening-button").innerHTML = "Listening...";
+                document.getElementById("start-listening-button").disabled = true;
+                $.ajax({
+                    url: "{% url 'listenAndRecognize' %}",  // Replace with your URL pattern name
+                    type: "GET",
+                    dataType: "json",
+                    success: function (data) {
+                        console.log('Success:', data);
+                        console.log(data.text);
+                        // Update the text on the page with the data from the server
+                        setText(data.text);
+                    },
+                    error: function (error) {
+                        console.error('Error:', error);
+                    }
+                    
+                });
+                
+             
+            });
+        });
+        async function CaustiousMode(){
+            var checkBox = document.getElementById("toggle");
+            if (checkBox.checked == true){
+                console.log("caustious mode on");
+                captureFrame();
+                setOutput("Scanning dangerous weapons... in the surroundings");
+                $.ajax({
+                        url: "{% url 'danger' %}",  
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            console.log('Success:', data);
+                            console.log(data.danger + "danger");
+                            setOutput(data.danger);
+                            if(data.danger.includes("danger")){
+                                document.getElementByTagName("body")[0].style.backgroundColor = "red";
+                                setTimeout(function() {
+                                document.getElementByTagName("body")[0].style.backgroundColor = "azure";
+                                }, 3000);
+        
+                            }
+                            setOutput(data.danger);
+                            
+                        },
+                        error: function (error) {
+                            console.error('Error:', error);
+                        }
+                        
+                    });
+            } else {
+                console.log("caustious mode off");
+            }
+        }
+        setInterval(async () => {
+            await CaustiousMode();
+            }, 10000);
+
+    </script>
+</body>
+</html>
