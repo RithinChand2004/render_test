@@ -4,7 +4,7 @@ azure-storage-blob
 pyttsx3
 azure-ai-textanalytics
 azure-cognitiveservices-vision-computervision
-azure.vision.ai
+azure.ai.vision
 opencv-python
 numpy
 asgiref
